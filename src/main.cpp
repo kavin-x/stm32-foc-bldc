@@ -5,9 +5,9 @@
 #include "SimpleFOCDrivers.h"
 #include "drivers/drv8316/drv8316.h"
 
+MagneticSensorSPI as5047u = MagneticSensorSPI(PB2, 14, 0x3FFF);
 BLDCMotor motor = BLDCMotor(7);
 DRV8316Driver6PWM driver = DRV8316Driver6PWM(PA8,PB13,PA9,PB14,PA10,PB15,PB12,false,PB9,PB10); 
-
 SPIClass SPI_2(PB5, PB4, PB3);
 
 void printDRV8316Status() {
@@ -71,6 +71,7 @@ void printDRV8316Status() {
 
 
 void setup() {
+	as5047u.init();
 	Serial.begin(115200);
 	while (!Serial);
 	delay(1);
@@ -86,12 +87,16 @@ void setup() {
 	Serial.println("Init complete...");
 
 	delay(100);
-	printDRV8316Status();
+	// printDRV8316Status();
 }
 
 // velocity set point variable
 float target_velocity = 7.0;
 
 void loop() {
-	motor.move(target_velocity);
+  as5047u.update();
+  // display the angle and the angular velocity to the terminal
+  Serial.print(as5047u.getAngle());
+  Serial.print("\t");
+  Serial.println(as5047u.getVelocity());
 }
