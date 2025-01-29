@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "lock_resource.h": "c",
+        "backup.h": "c",
+        "otp.h": "c",
+        "stm32yyxx_ll_cortex.h": "c",
+        "stm32yyxx_ll_rcc.h": "c",
+        "clock.h": "c",
+        "compare": "cpp"
+    },
+    "C_Cpp.errorSquiggles": "disabled"
+}
