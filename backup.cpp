@@ -81,48 +81,41 @@ void DRV8353_init()
 
 void setup() { 
   DRV8353_init();
-  sensor.init();
+  // sensor.init();
   // link the motor to the sensor
   // motor.linkSensor(&sensor);
 
-  driver.voltage_power_supply = 24;
+  driver.voltage_power_supply = 12;
+  driver.voltage_limit = 12;
   driver.init();
   
     // link the driver to the current sense
   // current_sense.linkDriver(&driver);
   // link driver
-  motor.linkDriver(&driver);
+  motor.linkDriver(&driver);/
 
-  motor.voltage_limit = 2;
+  // motor.voltage_limit = 2;
   // set motion control loop to be used
-  motor.controller = MotionControlType::angle_openloop;
+  // motor.controller = MotionControlType::angle_openloop;
 
   // use monitoring with serial 
   Serial.begin(115200);
   // comment out if not needed
-  motor.useMonitoring(Serial);
+  // motor.useMonitoring(Serial);
 
   // initialize motor
-  motor.init();
-  // init current sense
-  current_sense.init();
-  // link the current sense to the motor
-  motor.linkCurrentSense(&current_sense);
+  // motor.init();
+  // // init current sense
+  // current_sense.init();
+  // // link the current sense to the motor
+  // motor.linkCurrentSense(&current_sense);
   
   // align sensor and start FOC
-  motor.initFOC();
-  command.add('M', doTarget, "motor");
+  // motor.initFOC();
+  // command.add('M', doTarget, "motor");
   _delay(1000);
 }
 
 void loop() {
-
-  // main FOC algorithm function
-  motor.loopFOC();
-  // open loop velocity movement
-  // using motor.voltage_limit and motor.velocity_limit
-  // to turn the motor "backwards", just set a negative target_velocity
-  motor.move(target_velocity);
-  // user communication
-  command.run();
+  driver.setPwm(3,6,5);
 }
