@@ -69,12 +69,12 @@ void DRV8353_init()
 void setup()
 {
   Serial.begin(115200);
-  delay(1000);
+  delay(10000);
   pinMode(PC14, OUTPUT);
   Serial.println("Starting Driver Initialization");
   DRV8353_init();
 
-    // power supply voltage [V]
+  // power supply voltage [V]
   // driver.voltage_power_supply = 12;
   // // Max DC voltage allowed - default voltage_power_supply
   // driver.voltage_limit = 12;
@@ -87,7 +87,7 @@ void setup()
 
   // // enable driver
   // driver.enable();
-  
+
   // Serial.println("Driver ready!");
   delay(1000);
 }
@@ -96,5 +96,12 @@ void loop()
 {
   readRegister(0b1000000000000000);
   readRegister(0b1000100000000000);
-  delay(500);
+  readRegister(0b1001000000000000);
+  readRegister(0b1001100000000000);
+  readRegister(0b1010000000000000);
+  delay(1000);
+  digitalWrite(MOTOR_ENABLE, LOW);
+  delay(100);
+  digitalWrite(MOTOR_ENABLE, HIGH);
+  delay(100);
 }
