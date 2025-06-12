@@ -66,7 +66,7 @@ void DRV8353_init()
   SPI_2.begin();
   delayMicroseconds(100);
   // Set address 0x02h to (PWM_MODE = 01b, OCP_ACT = 1b, Others to Default)
-  writeRegister(0b0 00101 0000000000);
+  writeRegister(0b0001010000000000);
   // Set address 0x03h to (All values are set to Default)
   writeRegister(0b0001101100110011);
   // Set address 0x04h to (TDRIVE = 00b Others to Default)

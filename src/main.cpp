@@ -5,11 +5,17 @@
 #define MOTOR_ENABLE PB10
 #define MOTOR_FAULT PB1
 
-BLDCMotor motor = BLDCMotor(4);
-// BLDC driver instance
+BLDCMotor motor = BLDCMotor(7);
+
 BLDCDriver6PWM driver = BLDCDriver6PWM(PA8, PB13, PA9, PB14, PA10, PB15);
 
 SPIClass SPI_3(PB5, PB4, PB3);
+
+// velocity set point variable
+float target_velocity = 0;
+// commander interface
+Commander command = Commander(Serial);
+void doTarget(char* cmd){ command.scalar(&target_velocity, cmd); }
 
 void printBinary(uint16_t value)
 {
@@ -52,10 +58,10 @@ void DRV8353_init()
   digitalWrite(SELECT, HIGH);
   SPI_3.begin();
   delayMicroseconds(100);
-  // Set address 0x02h to (PWM_MODE = 01b, OCP_ACT = 1b, Others to Default)
-  writeRegister(0b0001010000000001);
+  // Set address 0x02h to (PWM_MODE = 00b, OCP_ACT = 1b, Others to Default)
+  writeRegister(0b0001010000000000);
   // Set address 0x03h to (All values are set to Default)
-  writeRegister(0b0001101100110011);
+  writeRegister(0b0001101100000000);
   // Set address 0x04h to (TDRIVE = 00b Others to Default)
   writeRegister(0b0010010000000000);
   // Set address 0x05h to (DEAD_TIME = 00b, OCP_MODE =00b, OCP_DEG=00b VDS_LVL=0000b)
@@ -69,39 +75,38 @@ void DRV8353_init()
 void setup()
 {
   Serial.begin(115200);
-  delay(10000);
   pinMode(PC14, OUTPUT);
   Serial.println("Starting Driver Initialization");
   DRV8353_init();
+  SimpleFOCDebug::enable(&Serial);
 
+  // driver config
   // power supply voltage [V]
-  // driver.voltage_power_supply = 12;
-  // // Max DC voltage allowed - default voltage_power_supply
-  // driver.voltage_limit = 12;
+  driver.voltage_power_supply = 24;
+  driver.init();
+  // link the motor and the driver
+  motor.linkDriver(&driver);
 
-  // // driver init
-  // if (!driver.init()){
-  //   Serial.println("Driver init failed!");
-  //   return;
-  // }
+  // limiting motor current (provided resistance)
+  motor.voltage_limit = 2.5; // [Amps]
 
-  // // enable driver
-  // driver.enable();
+  // open loop control config
+  motor.controller = MotionControlType::velocity_openloop;
 
-  // Serial.println("Driver ready!");
-  delay(1000);
+  // init motor hardware
+  motor.init();
+  motor.initFOC();
+
+  // add target command T
+  command.add('T', doTarget, "target velocity");
+
+  Serial.begin(115200);
+  Serial.println("Motor ready!");
+  Serial.println("Set target velocity [rad/s]");
+  _delay(1000);
 }
 
 void loop()
 {
-  readRegister(0b1000000000000000);
-  readRegister(0b1000100000000000);
-  readRegister(0b1001000000000000);
-  readRegister(0b1001100000000000);
-  readRegister(0b1010000000000000);
-  delay(1000);
-  digitalWrite(MOTOR_ENABLE, LOW);
-  delay(100);
-  digitalWrite(MOTOR_ENABLE, HIGH);
-  delay(100);
+    motor.move(target_velocity);
 }
