@@ -18,4 +18,7 @@ void FDCAN_SendMessage();
 void FDCAN_ChangeID(uint16_t newID);
 uint16_t FDCAN_FindUniqueID(void);
 
+extern FDCAN_TxHeaderTypeDef TxHeader;
+extern uint8_t TxData[8];
+
 #endif

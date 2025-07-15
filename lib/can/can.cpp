@@ -1,10 +1,6 @@
 #include "can.h"
 #include "motor.h"
 
-extern float received_angle;
-extern BLDCMotor M1;
-extern bool motor_enabled;
-
 enum canAction
 {
   WaitForCmd,
@@ -29,7 +25,7 @@ extern "C" void FDCAN1_IT0_IRQHandler(void);
 
 void FDCAN_Error_Handler(void)
 {
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_SET);
+  Serial.println("Error sending");
 }
 
 void FDCAN_Init(void)
@@ -44,14 +40,14 @@ void FDCAN_Init(void)
 
   // transceiver and peripheral clock specific values
   hfdcan1.Init.NominalPrescaler = 1;
-  hfdcan1.Init.NominalSyncJumpWidth = 2;
-  hfdcan1.Init.NominalTimeSeg1 = 21;
-  hfdcan1.Init.NominalTimeSeg2 = 2;
+  hfdcan1.Init.NominalSyncJumpWidth = 17;
+  hfdcan1.Init.NominalTimeSeg1 = 110;
+  hfdcan1.Init.NominalTimeSeg2 = 17;
 
   hfdcan1.Init.DataPrescaler = 1;
-  hfdcan1.Init.DataSyncJumpWidth = 5;
-  hfdcan1.Init.DataTimeSeg1 = 6;
-  hfdcan1.Init.DataTimeSeg2 = 5;
+  hfdcan1.Init.DataSyncJumpWidth = 63;
+  hfdcan1.Init.DataTimeSeg1 = 64;
+  hfdcan1.Init.DataTimeSeg2 = 63;
   //
 
   hfdcan1.Init.StdFiltersNbr = 1;
@@ -110,15 +106,15 @@ void HAL_FDCAN_MspInit(FDCAN_HandleTypeDef *hfdcan)
     __HAL_RCC_GPIOB_CLK_ENABLE();
 
     /**FDCAN1 GPIO Configuration
-    PB8-BOOT0     ------> FDCAN1_RX
-    PB9     ------> FDCAN1_TX
+    PA11     ------> FDCAN1_RX
+    PA12     ------> FDCAN1_TX
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_8 | GPIO_PIN_9;
+    GPIO_InitStruct.Pin = GPIO_PIN_11 | GPIO_PIN_12;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.Alternate = GPIO_AF9_FDCAN1;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
     HAL_NVIC_SetPriority(FDCAN1_IT0_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(FDCAN1_IT0_IRQn);
@@ -133,10 +129,10 @@ void HAL_FDCAN_MspDeInit(FDCAN_HandleTypeDef *hfdcan)
     __HAL_RCC_FDCAN_CLK_DISABLE();
 
     /**FDCAN1 GPIO Configuration
-    PB8-BOOT0     ------> FDCAN1_RX
-    PB9     ------> FDCAN1_TX
+    PA11     ------> FDCAN1_RX
+    PA12     ------> FDCAN1_TX
     */
-    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_8 | GPIO_PIN_9);
+    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_11 | GPIO_PIN_12);
 
     HAL_NVIC_DisableIRQ(FDCAN1_IT0_IRQn);
   }
@@ -167,30 +163,10 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 
 void FDCAN_SendMessage(void)
 {
-  switch (FDCAN_State)
-  {
-  case TxDeviceInfo:
-    break;
-
-  case SearchForID:
-    TxHeader.Identifier = FDCAN_TempID;
-    TxHeader.TxFrameType = FDCAN_REMOTE_FRAME;
-    TxHeader.DataLength = FDCAN_DLC_BYTES_0;
-    break;
-
-  default:
-    break;
-  }
-
   if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, TxData) != HAL_OK)
   {
     FDCAN_Error_Handler();
   }
-
-  // Set the tx parameters back to normal. 
-  TxHeader.Identifier = sFilterConfig.FilterID1;
-  TxHeader.TxFrameType = FDCAN_DATA_FRAME;
-  TxHeader.DataLength = FDCAN_DLC_BYTES_8;
 }
 
 uint16_t FDCAN_FindUniqueID(void)

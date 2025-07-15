@@ -5,28 +5,31 @@ uint8_t configureCAN(void);
 
 void setup()
 {
-	uint8_t ret;
-	ret = configureCAN();
-	if (!ret)
+	delay(5000);
+
+	Serial.begin(115200);
+	if (!configureCAN())
 	{
-		SIMPLEFOC_DEBUG("CAN init failed.");
+		Serial.println("CAN init failed.");
+	}
+	else{
+		Serial.println("CAN init successful");
 	}
 }
 
 void loop()
 {
-	// Send CAN message to Board B (0x102)
-	TxHeader.Identifier = 0x102; // Set receiver ID
+	TxHeader.Identifier = 0x102;
 	TxData[0] = 0xAB;
 	TxData[1] = 0xCD;
 	FDCAN_SendMessage();
 
-	Serial.println("Sent CAN message to 0x102");
+	Serial.println("Board A sent to 0x102");
 	delay(1000);
 }
 
 uint8_t configureCAN(void)
 {
-	FDCAN_Start(0x7CC);
+	FDCAN_Start(0x101); // This board uses ID 0x101
 	return 1;
 }
