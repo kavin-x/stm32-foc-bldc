@@ -120,8 +120,7 @@ void setup()
 
 void loop()
 {
-  // open loop velocity movement
-  motor.move();
-  // user communication
-  command.run();  
+  readRegister(0b1001000000000000);
+  // Set address 0x03h to (All values are set to Default)
+  readRegister(0b1001100000000000); 
 }

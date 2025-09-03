@@ -6,27 +6,29 @@
 #include <SPI.h>
 
 // Register addresses
-#define REG_FAULT_STATUS_1         0x00
-#define REG_FAULT_STATUS_2         0x01
-#define REG_GATE_DRIVER_CONTROL_1  0x02
-#define REG_GATE_DRIVER_CONTROL_2  0x03
-#define REG_OCP_CONTROL            0x04
-#define REG_CSA_CONTROL            0x05
-#define REG_CSA_OCP_CONTROL        0x06
-#define REG_VDS_CONTROL            0x07
-#define REG_TEMPERATURE_CONTROL    0x08
-#define REG_GATE_DRIVER_CONTROL_3  0x09
-#define REG_CSA_CONTROL_2          0x0A
+#define REG_FAULT_STATUS_1 0x00
+#define REG_FAULT_STATUS_2 0x01
+#define REG_GATE_DRIVER_CONTROL_1 0x02
+#define REG_GATE_DRIVER_CONTROL_2 0x03
+#define REG_OCP_CONTROL 0x04
+#define REG_CSA_CONTROL 0x05
+#define REG_CSA_OCP_CONTROL 0x06
+#define REG_VDS_CONTROL 0x07
+#define REG_TEMPERATURE_CONTROL 0x08
+#define REG_GATE_DRIVER_CONTROL_3 0x09
+#define REG_CSA_CONTROL_2 0x0A
 
-class DRV8353FS {
+class DRV8353FS
+{
 public:
-    DRV8353FS(uint8_t csPin, SPIClass* spi = &SPI);
+    DRV8353FS(uint8_t csPin, SPIClass *spi = &SPI,
+              uint8_t motorEnablePin = 255, uint8_t motorFaultPin = 255);
 
     void begin();
 
     uint16_t readRegister(uint8_t address);
     void writeRegister(uint8_t address, uint16_t data);
-
+    void initializeRegisters();
     void configureGateDrive(uint8_t hs_idrive, uint8_t ls_idrive);
     void setOCPLevel(uint8_t level);
     void configureCSA(uint8_t gain, bool bidirectional);
@@ -40,8 +42,9 @@ public:
 
 private:
     uint8_t _csPin;
-    SPIClass* _spi;
-
+    SPIClass *_spi;
+    uint8_t _motorEnablePin;
+    uint8_t _motorFaultPin;
     uint16_t spiTransfer(uint16_t data);
     uint8_t _ledPin = 255; // 255 means LED not used
 };
